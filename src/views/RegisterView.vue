@@ -1,10 +1,10 @@
 <template>
-  <h1>登录</h1>
+  <h1>注册</h1>
 </template>
 
 <script>
 export default {
-  name: "LoginView"
+  name: "RegisterView"
 }
 </script>
 <style>

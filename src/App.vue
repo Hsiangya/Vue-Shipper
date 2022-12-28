@@ -1,26 +1,56 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <el-container>
+    <el-header height="72px" style="border-bottom: 1px solid #f5f5f5;">
+      <div class="header">
+        <div class="logo">
+          <img src="./assets/logo.png" alt="">
+        </div>
+        <div class="top-menu">
+          <router-link :to="{name:'Login'}">
+            <el-button >登录</el-button>
+          </router-link>
+          <router-link :to="{name:'Register'}">
+            <el-button >注册</el-button>
+          </router-link>
+        </div>
+      </div>
+    </el-header>
+    <el-container>
+      <el-aside width="200px">Aside</el-aside>
+      <el-main>
+        <router-view/>
+      </el-main>
+    </el-container>
+  </el-container>
+
+
 </template>
 
-<script>
-import HelloWorld from './components/HelloWorld.vue'
-
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+<style scoped>
+body {
+  margin: 0;
 }
-</script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+img {
+  height: 100%;
 }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-flow: row;
+  height: 72px;
+  background-color: #a0cfff;
+}
+
+.header .logo {
+  height: 48px;
+}
+
+.header .top-menu a {
+  padding: 0 5px;
+  text-decoration: none;
+}
+
+
 </style>
