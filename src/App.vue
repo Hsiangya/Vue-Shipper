@@ -16,13 +16,12 @@
       </div>
     </el-header>
     <router-view/>
-
   </el-container>
 
 
 </template>
 
-<style scoped>
+<style>
 body {
   margin: 0;
 }

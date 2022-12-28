@@ -56,6 +56,11 @@ import {
 
 }
 
+.el-menu {
+  border-right: 0;
+}
+
+
 .body {
   background-color: #f5f5f5;
 }
