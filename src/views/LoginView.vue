@@ -12,11 +12,11 @@
           </li>
         </ul>
         <div v-show="tabSelected===0">
-          <el-form size="large" :model="userModel">
-            <el-form-item style="margin-top: 24px;">
+          <el-form size="large" :model="userModel" :rules="userRules">
+            <el-form-item style="margin-top: 24px;" prop="user">
               <el-input v-model="userModel.user" placeholder="手机号"/>
             </el-form-item>
-            <el-form-item style="margin-top: 24px;">
+            <el-form-item style="margin-top: 24px;" prop="pwd">
               <el-input v-model="userModel.pwd" placeholder="密码"/>
             </el-form-item>
             <el-form-item style="margin-top: 24px;">
@@ -25,11 +25,11 @@
           </el-form>
         </div>
         <div v-show="tabSelected===1">
-          <el-form size="large" :model="smsModel">
-            <el-form-item style="margin-top: 24px;">
+          <el-form size="large" :model="smsModel" :rules="smsRules">
+            <el-form-item style="margin-top: 24px;" prop="mobile">
               <el-input v-model="smsModel.mobile" placeholder="手机号"/>
             </el-form-item>
-            <el-form-item style="margin-top: 24px;">
+            <el-form-item style="margin-top: 24px;" prop="code">
               <el-row justify="space-between" style="width: 100%">
                 <el-input v-model="smsModel.code" placeholder="验证码" style="width: 220px"/>
                 <el-button :disabled="btnSmsDisabled" @click="doSendSms">{{ bntSmsText }}</el-button>
@@ -48,19 +48,41 @@
 
 <script setup>
 import {ref, reactive} from "vue";
+
 // 登录模式
-let tabSelected = ref(0)
-const btnSmsDisabled = ref(false);
-const bntSmsText = ref("发送验证码");
 const tabList = reactive(["密码登录", "免密码登录"])
+let tabSelected = ref(0)
+
+// 密码登录
 const userModel = reactive({
   user: '',
   pwd: '',
 })
 
+const userRules = reactive({
+  user: [
+    {required: true, message: '用户名不能为空', trigger: 'blur'},
+  ],
+  pwd: [
+    {required: true, message: '密码不能为空', trigger: 'blur'},
+    {min: 6, max: 28, message: '密码长度至少6个字符', trigger: 'blur'}
+  ],
+})
+
+// 短信登录
+const bntSmsText = ref("发送验证码");
+const btnSmsDisabled = ref(false);
 const smsModel = reactive({
   mobile: '',
   code: '',
+});
+const smsRules = reactive({
+  mobile: [
+    {required: true, message: '手机号不能空', trigger: 'blur'},
+  ],
+  code: [
+    {required: true, message: '验证码不能为空', trigger: 'blur'},
+  ]
 })
 
 function doSendSms() {
@@ -76,6 +98,8 @@ function doSendSms() {
     }
   }, 1000)
 }
+
+
 </script>
 <style scoped>
 .main {
