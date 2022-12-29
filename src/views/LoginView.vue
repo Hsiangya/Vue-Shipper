@@ -119,8 +119,11 @@ function PasswordLogin() {
     }
     // 校验成功，发送网络请求
     console.log("校验成功", userModel)
-    let res = {code: -1, error: {user: "用户名错误", pwd: "密码格式出问题了"}}
-    validateFormError(UserError, res.error);
+    proxy.$axios.post(" http://127.0.0.1:8000/api/login/").then(res => {
+      console.log(res)
+    })
+    // let res = {code: -1, error: {user: "用户名错误", pwd: "密码格式出问题了"}}
+    // validateFormError(UserError, res.error);
   });
 }
 
