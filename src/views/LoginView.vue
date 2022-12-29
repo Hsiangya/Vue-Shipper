@@ -12,24 +12,24 @@
           </li>
         </ul>
         <div v-show="tabSelected===0">
-          <el-form size="large" :model="userModel" :rules="userRules">
-            <el-form-item style="margin-top: 24px;" prop="user">
+          <el-form size="large" :model="userModel" :rules="userRules" ref="userRef">
+            <el-form-item style="margin-top: 24px;" prop="user" :error="UserError.user">
               <el-input v-model="userModel.user" placeholder="手机号"/>
             </el-form-item>
-            <el-form-item style="margin-top: 24px;" prop="pwd">
+            <el-form-item style="margin-top: 24px;" prop="pwd" :error="UserError.pwd">
               <el-input v-model="userModel.pwd" placeholder="密码"/>
             </el-form-item>
             <el-form-item style="margin-top: 24px;">
-              <el-button type="primary">登 录</el-button>
+              <el-button @click="PasswordLogin" type="primary">登 录</el-button>
             </el-form-item>
           </el-form>
         </div>
         <div v-show="tabSelected===1">
-          <el-form size="large" :model="smsModel" :rules="smsRules">
-            <el-form-item style="margin-top: 24px;" prop="mobile">
+          <el-form size="large" :model="smsModel" :rules="smsRules" ref="smsRef">
+            <el-form-item style="margin-top: 24px;" prop="mobile" :error="SmsError.mobile">
               <el-input v-model="smsModel.mobile" placeholder="手机号"/>
             </el-form-item>
-            <el-form-item style="margin-top: 24px;" prop="code">
+            <el-form-item style="margin-top: 24px;" prop="code" :error="SmsError.code">
               <el-row justify="space-between" style="width: 100%">
                 <el-input v-model="smsModel.code" placeholder="验证码" style="width: 220px"/>
                 <el-button :disabled="btnSmsDisabled" @click="doSendSms">{{ bntSmsText }}</el-button>
@@ -37,7 +37,7 @@
 
             </el-form-item>
             <el-form-item style="margin-top: 24px;">
-              <el-button type="primary">登 录</el-button>
+              <el-button @click="SmsLogin" type="primary">登 录</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -47,8 +47,9 @@
 </template>
 
 <script setup>
-import {ref, reactive} from "vue";
+import {ref, reactive, getCurrentInstance} from "vue";
 
+const {proxy} = getCurrentInstance()
 // 登录模式
 const tabList = reactive(["密码登录", "免密码登录"])
 let tabSelected = ref(0)
@@ -58,7 +59,6 @@ const userModel = reactive({
   user: '',
   pwd: '',
 })
-
 const userRules = reactive({
   user: [
     {required: true, message: '用户名不能为空', trigger: 'blur'},
@@ -68,7 +68,10 @@ const userRules = reactive({
     {min: 6, max: 28, message: '密码长度至少6个字符', trigger: 'blur'}
   ],
 })
-
+const UserError = reactive({
+  user: '',
+  pwd: '',
+})
 // 短信登录
 const bntSmsText = ref("发送验证码");
 const btnSmsDisabled = ref(false);
@@ -83,6 +86,10 @@ const smsRules = reactive({
   code: [
     {required: true, message: '验证码不能为空', trigger: 'blur'},
   ]
+})
+const SmsError = reactive({
+  mobile: '',
+  code: '',
 })
 
 function doSendSms() {
@@ -99,6 +106,61 @@ function doSendSms() {
   }, 1000)
 }
 
+// 密码登录
+function PasswordLogin() {
+  // 清除自定义错误
+  clearFormError(UserError)
+
+  proxy.$refs.userRef.validate((valid) => {
+    // 校验失败
+    if (!valid) {
+      console.log("校验失败");
+      return false;
+    }
+    // 校验成功，发送网络请求
+    console.log("校验成功", userModel)
+    let res = {code: -1, error: {user: "用户名错误", pwd: "密码格式出问题了"}}
+    validateFormError(UserError, res.error);
+  });
+}
+
+// 短信登录
+function SmsLogin() {
+  // 清除自定义错误
+  clearFormError(SmsError);
+
+  proxy.$refs.smsRef.validate((valid) => {
+    // 校验失败
+    if (!valid) {
+      console.log("校验失败");
+      return false;
+    }
+
+    // 校验成功，发送网络请求
+    console.log("校验成功", userModel)
+    let res = {code: -1, error: {mobile: "手机号已存在", code: "验证失效"}}
+    validateFormError(SmsError, res.error);
+  });
+}
+
+/**
+ * 后端返回错误，展示
+ */
+function validateFormError(errorDict, resError) {
+  for (let key in resError) {
+    let txt = resError[key];
+    errorDict[key] = txt;
+  }
+}
+
+/**
+ * 清除后端返回的错误
+ */
+function clearFormError(errorDict) {
+  for (let key in errorDict) {
+    errorDict[key] = ""
+  }
+}
 
 </script>
 <style scoped>
