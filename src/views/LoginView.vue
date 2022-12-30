@@ -13,11 +13,11 @@
         </ul>
         <div v-show="tabSelected===0">
           <el-form size="large" :model="userModel" :rules="userRules" ref="userRef">
-            <el-form-item style="margin-top: 24px;" prop="user" :error="UserError.user">
-              <el-input v-model="userModel.user" placeholder="手机号"/>
+            <el-form-item style="margin-top: 24px;" prop="mobile" :error="UserError.mobile">
+              <el-input v-model="userModel.mobile" placeholder="手机号"/>
             </el-form-item>
-            <el-form-item style="margin-top: 24px;" prop="pwd" :error="UserError.pwd">
-              <el-input v-model="userModel.pwd" placeholder="密码"/>
+            <el-form-item style="margin-top: 24px;" prop="password" :error="UserError.password">
+              <el-input v-model="userModel.password" placeholder="密码"/>
             </el-form-item>
             <el-form-item style="margin-top: 24px;">
               <el-button @click="PasswordLogin" type="primary">登 录</el-button>
@@ -47,8 +47,13 @@
 </template>
 
 <script setup>
+import {ElMessage} from 'element-plus'
 import {ref, reactive, getCurrentInstance} from "vue";
+import {useStore} from 'vuex'
+import {useRouter} from 'vue-router'
 
+const store = useStore();
+const router = useRouter();
 const {proxy} = getCurrentInstance()
 // 登录模式
 const tabList = reactive(["密码登录", "免密码登录"])
@@ -56,21 +61,21 @@ let tabSelected = ref(0)
 
 // 密码登录
 const userModel = reactive({
-  user: '',
-  pwd: '',
+  mobile: '',
+  password: '',
 })
 const userRules = reactive({
-  user: [
+  mobile: [
     {required: true, message: '用户名不能为空', trigger: 'blur'},
   ],
-  pwd: [
+  password: [
     {required: true, message: '密码不能为空', trigger: 'blur'},
     {min: 6, max: 28, message: '密码长度至少6个字符', trigger: 'blur'}
   ],
 })
 const UserError = reactive({
-  user: '',
-  pwd: '',
+  mobile: '',
+  password: '',
 })
 // 短信登录
 const bntSmsText = ref("发送验证码");
@@ -118,11 +123,27 @@ function PasswordLogin() {
       return false;
     }
     // 校验成功，发送网络请求
-    console.log("校验成功", userModel)
-    proxy.$axios.post(" http://127.0.0.1:8000/api/login/").then(res => {
-      console.log(res)
-    })
-    // let res = {code: -1, error: {user: "用户名错误", pwd: "密码格式出问题了"}}
+    proxy.$axios.post(" http://127.0.0.1:8000/api/login/", userModel)
+        .then(res => {
+          if (res.status === "success") {
+            // console.log("登录成功")
+            // 1. 保存到vuex
+            // 1.保存到vuex + 持久化
+            store.commit("login", res.data.data);
+            // 2.跳转到后台
+            router.replace({name: "Basic"})
+
+            // proxy.$store.commit("login", res.data.data);
+            // proxy.router({name: "Basic"})
+          } else if (res.data.code === -1) {
+            // {code: -1, error: {user: "用户名错误", pwd: "密码格式出问题了"}}
+            validateFormError(UserError, res.data.detail);
+          } else {
+            //{"code": -2, 'msg': "用户名或密码错误"}
+            ElMessage.error(res.data.msg);
+          }
+        })
+    // let res = {code: -1, error: {user: "用户名错误", password: "密码格式出问题了"}}
     // validateFormError(UserError, res.error);
   });
 }
