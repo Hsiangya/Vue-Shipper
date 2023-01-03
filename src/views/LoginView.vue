@@ -125,14 +125,14 @@ function PasswordLogin() {
     // 校验成功，发送网络请求
     proxy.$axios.post(" http://127.0.0.1:8000/api/login/", userModel)
         .then(res => {
-          if (res.status === "success") {
+          console.log(res.data)
+          if (res.data.status === "success") {
             // console.log("登录成功")
-            // 1. 保存到vuex
             // 1.保存到vuex + 持久化
             store.commit("login", res.data.data);
             // 2.跳转到后台
             router.replace({name: "Basic"})
-
+            // vue3中proxy代之vue2中的this
             // proxy.$store.commit("login", res.data.data);
             // proxy.router({name: "Basic"})
           } else if (res.data.code === -1) {
@@ -140,7 +140,7 @@ function PasswordLogin() {
             validateFormError(UserError, res.data.detail);
           } else {
             //{"code": -2, 'msg': "用户名或密码错误"}
-            ElMessage.error(res.data.msg);
+            ElMessage.error(res.data.message);
           }
         })
     // let res = {code: -1, error: {user: "用户名错误", password: "密码格式出问题了"}}
