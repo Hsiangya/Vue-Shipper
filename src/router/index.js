@@ -15,7 +15,7 @@ const routes = [
         path: '/front',
         name: 'Front',
         component: () => import("../views/FrontView"),
-        children:[
+        children: [
             {
                 path: '/basic',
                 name: 'Basic',
@@ -33,6 +33,28 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes
+})
+
+// 导航守卫
+router.beforeEach((to, form, next) => {
+    let token = localStorage.getItem("token");
+    // to: 即将访问的路由对象
+    // from：当前正在离开的路由对象
+    // next()：继续向后执行，跳转到to路由对象中
+    // next(false) 不跳转，还在当前页面。
+    // next("/xxx")  next({name:"xxx"})  next({path:"/xxx"})
+    if (token) {
+        // 已登录
+        next();
+        return;
+    }
+    if (to.name === "Login" || to.name === "Register") {
+        // 注册或登录界面可以直接访问
+        next();
+        return;
+    }
+    // 未登录，访问Login路由
+    next({name: "Login"})
 })
 
 export default router
