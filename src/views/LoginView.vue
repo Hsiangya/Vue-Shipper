@@ -98,17 +98,35 @@ const SmsError = reactive({
 })
 
 function doSendSms() {
-  btnSmsDisabled.value = true;// 发送验证码按钮禁止点击
-  let num = 60;
-  let interval = window.setInterval(() => {
-    num -= 1;
-    bntSmsText.value = `${num}秒后重发`
-    if (num < 1) {
-      bntSmsText.value = "重新发送";
-      window.clearInterval(interval);
-      btnSmsDisabled.value = false;
+  proxy.$refs.smsRef.validateField("mobile", (valid) => {
+    // 校验失败
+    if (!valid) {
+      console.log("校验失败");
+      return false;
     }
-  }, 1000)
+    proxy.$axios.post("http://127.0.0.1:8000/api/send/sms/", {
+      mobile: smsModel.mobile
+    }).then(res => {
+      if (res.data.code === 1000) {
+        btnSmsDisabled.value = true;// 发送验证码按钮禁止点击
+        let num = 60;
+        let interval = window.setInterval(() => {
+          num -= 1;
+          bntSmsText.value = `${num}秒后重发`
+          if (num < 1) {
+            bntSmsText.value = "重新发送";
+            window.clearInterval(interval);
+            btnSmsDisabled.value = false;
+          }
+        }, 1000)
+      } else if (res.data.code === 2001) {
+        validateFormError(SmsError, res.data.detail);
+      } else {
+        ElMessage.error(res.data.message);
+      }
+    })
+  })
+
 }
 
 // 密码登录
@@ -123,7 +141,7 @@ function PasswordLogin() {
       return false;
     }
     // 校验成功，发送网络请求
-    proxy.$axios.post(" http://127.0.0.1:8000/api/login/", userModel)
+    proxy.$axios.post(" http://127.0.0.1:8000/api/login/password/", userModel)
         .then(res => {
           console.log(res.data)
           if (res.data.status === "success") {
@@ -161,9 +179,21 @@ function SmsLogin() {
     }
 
     // 校验成功，发送网络请求
-    console.log("校验成功", userModel)
-    let res = {code: -1, error: {mobile: "手机号已存在", code: "验证失效"}}
-    validateFormError(SmsError, res.error);
+    proxy.$axios.post(" http://127.0.0.1:8000/api/send/sms/", smsModel)
+        .then(res => {
+          console.log(res.data)
+          if (res.data.code === 1000) {
+            // 1. 保存到vuex
+            store.commit("login", res.data.data)
+            // 2. 跳转
+            router.replace({name: "Basic"})
+          } else if (res.data.code === 2001) {
+            validateFormError(SmsError, res.error);
+          } else {
+            ElMessage.error(res.data.message);
+          }
+        })
+
   });
 }
 
