@@ -149,7 +149,13 @@ function PasswordLogin() {
             // 1.保存到vuex + 持久化
             store.commit("login", res.data.data);
             // 2.跳转到后台
-            router.replace({name: "Basic"})
+            ElMessage({
+              message: '登录成功，2S后跳转基础页面',
+              type: 'success',
+            });
+            setInterval(function () {
+              router.replace({name: "Basic"})
+            }, 2000);
             // vue3中proxy代之vue2中的this
             // proxy.$store.commit("login", res.data.data);
             // proxy.router({name: "Basic"})
