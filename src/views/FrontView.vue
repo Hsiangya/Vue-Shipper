@@ -3,36 +3,33 @@
     <el-container style="height: 100%">
       <el-aside width="300px">
         <el-scrollbar>
-          <el-menu default-active="2" :router="true">
-            <el-sub-menu index="1">
+          <el-menu :default-active="activeRouter" :router="true">
+            <el-menu-item @click='PrintRoute' index='Home' :route="{name:'Home'} ">
+              <el-icon>
+                <Menu/>
+              </el-icon>
+              <span>首 页</span>
+            </el-menu-item>
+            <el-sub-menu index="User">
               <template #title>
                 <el-icon>
-                  <Location/>
+                  <User/>
                 </el-icon>
-                <span>Navigator One</span>
+                <span>会员中心</span>
               </template>
-              <el-menu-item index="1-1">item one</el-menu-item>
-              <el-menu-item index="1-2">item two</el-menu-item>
+              <el-menu-item index="Basic" :route="{name:'Basic'}">基本信息</el-menu-item>
+              <el-menu-item index="Auth" :route="{name:'Auth'}">账号认证</el-menu-item>
             </el-sub-menu>
-            <el-menu-item index="2" :route="{name:'Basic'}">
-              <el-icon>
-                <IconMenu/>
-              </el-icon>
-              <span>Navigator Two</span>
-            </el-menu-item>
-            <el-menu-item index="3" :route="{name:'Auth'}">
-              <el-icon>
-                <Document/>
-              </el-icon>
-              <span>Navigator Three</span>
-            </el-menu-item>
-            <el-menu-item index="4">
-
-              <el-icon>
-                <Setting/>
-              </el-icon>
-              <span>Navigator Four</span>
-            </el-menu-item>
+            <el-sub-menu index="Ship">
+              <template #title>
+                <el-icon>
+                  <Box/>
+                </el-icon>
+                <span>运单中心</span>
+              </template>
+              <el-menu-item index="ShipPublish" :route="{name:'ShipPublish'}">发布运单</el-menu-item>
+              <el-menu-item index="ShipAdmin" :route="{name:'ShipAdmin'}">运单管理</el-menu-item>
+            </el-sub-menu>
           </el-menu>
         </el-scrollbar>
       </el-aside>
@@ -44,9 +41,18 @@
 </template>
 
 <script setup>
-import {
-  Document, Menu as IconMenu, Location, Setting,
-} from '@element-plus/icons-vue'
+import {Box, Menu, User} from '@element-plus/icons-vue'
+import {useRoute} from "vue-router";
+import {computed} from "vue";
+
+const route = useRoute();
+// 将菜单激活状态===当前路由名称
+const activeRouter = computed(() => route.name)
+
+function PrintRoute() {
+  console.log(route)
+}
+
 </script>
 
 <style scoped>

@@ -4,32 +4,42 @@ const routes = [
     {
         path: '/login',
         name: 'Login',
-        component: () => import("../views/LoginView")
+        component: () => import("@/views/LoginView")
     },
     {
         path: '/register',
         name: 'Register',
-        component: () => import("../views/RegisterView")
+        component: () => import("@/views/RegisterView")
     },
     {
         path: '/front',
         name: 'Front',
-        component: () => import("../views/FrontView"),
+        component: () => import("@/views/FrontView"),
         children: [
             {
                 path: '/home',
                 name: 'Home',
-                component: () => import("../views/account/HomeView")
+                component: () => import("@/views/HomeView")
             },
             {
                 path: '/basic',
                 name: 'Basic',
-                component: () => import("../views/account/BasicView")
+                component: () => import("@/views/account/BasicView")
             },
             {
                 path: '/auth',
                 name: 'Auth',
-                component: () => import("../views/account/AuthView")
+                component: () => import("@/views/account/AuthView")
+            },
+            {
+                path: '/ship/publish',
+                name: 'ShipPublish',
+                component: () => import("@/views/ship/PublishView")
+            },
+            {
+                path: '/ship/admin',
+                name: 'ShipAdmin',
+                component: () => import("@/views/ship/Admin")
             },
         ]
     },
