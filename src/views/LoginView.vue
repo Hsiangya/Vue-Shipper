@@ -51,6 +51,8 @@ import {ElMessage} from 'element-plus'
 import {ref, reactive, getCurrentInstance} from "vue";
 import {useStore} from 'vuex'
 import {useRouter} from 'vue-router'
+import {validateFormError, clearFormError} from '@/plugins/form'
+
 
 const store = useStore();
 const router = useRouter();
@@ -97,6 +99,7 @@ const SmsError = reactive({
   code: '',
 })
 
+// 发送短信
 function doSendSms() {
   proxy.$refs.smsRef.validateField("mobile", (valid) => {
     // 校验失败
@@ -203,24 +206,7 @@ function SmsLogin() {
   });
 }
 
-/**
- * 后端返回错误，展示
- */
-function validateFormError(errorDict, resError) {
-  for (let key in resError) {
-    let txt = resError[key];
-    errorDict[key] = txt;
-  }
-}
 
-/**
- * 清除后端返回的错误
- */
-function clearFormError(errorDict) {
-  for (let key in errorDict) {
-    errorDict[key] = ""
-  }
-}
 
 </script>
 <style scoped>

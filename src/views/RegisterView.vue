@@ -55,9 +55,13 @@
 import {getCurrentInstance, reactive, ref} from "vue";
 import {useRouter} from "vue-router";
 import {ElMessage} from 'element-plus'
+import {validateFormError, clearFormError} from '@/plugins/form'
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
+const bntSmsText = ref("发送验证码")
+const btnSmsDisabled = ref(false)
+
 // 重复密码与密码一致性校验
 const validatePass2 = (rule, value, callback) => {
   if (value === '') {
@@ -68,8 +72,6 @@ const validatePass2 = (rule, value, callback) => {
     callback()
   }
 }
-const bntSmsText = ref("发送验证码")
-const btnSmsDisabled = ref(false)
 
 // 数据
 const state = reactive({
@@ -181,25 +183,6 @@ function Register() {
       }
     })
   });
-}
-
-/**
- * 后端返回错误，展示
- */
-function validateFormError(errorDict, resError) {
-  for (let key in resError) {
-    let txt = resError[key];
-    errorDict[key] = txt;
-  }
-}
-
-/**
- * 清除后端返回的错误
- */
-function clearFormError(errorDict) {
-  for (let key in errorDict) {
-    errorDict[key] = ""
-  }
 }
 
 </script>

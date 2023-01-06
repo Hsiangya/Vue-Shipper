@@ -3,7 +3,9 @@
     <el-header height="72px" style="border-bottom: 1px solid #f5f5f5;">
       <div class="header">
         <div class="logo">
-          <img src="./assets/logo.png" alt="">
+          <router-link :to="{name:'Basic'}">
+            <img src="./assets/logo.png" alt="">
+          </router-link>
         </div>
         <div v-if="name" @click="logout" class="top-menu">{{ name }}</div>
         <div v-else class="top-menu">

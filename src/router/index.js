@@ -17,16 +17,31 @@ const routes = [
         component: () => import("../views/FrontView"),
         children: [
             {
+                path: '/home',
+                name: 'Home',
+                component: () => import("../views/account/HomeView")
+            },
+            {
                 path: '/basic',
                 name: 'Basic',
-                component: () => import("../views/BasicView")
+                component: () => import("../views/account/BasicView")
             },
             {
                 path: '/auth',
                 name: 'Auth',
-                component: () => import("../views/AuthView")
+                component: () => import("../views/account/AuthView")
             },
         ]
+    },
+    {
+        path: '',
+        redirect:{name:"Home"},
+    },
+    //
+    {
+        path: '/:path(.*)',
+        redirect:{name:"Home"},
+        component: () => import("../views/NotFoundView")
     },
 ]
 
