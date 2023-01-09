@@ -63,8 +63,8 @@ let tabSelected = ref(0)
 
 // 密码登录
 const userModel = reactive({
-  mobile: '',
-  password: '',
+  mobile: '13600334401',
+  password: 'xy159951',
 })
 const userRules = reactive({
   mobile: [
@@ -107,7 +107,7 @@ function doSendSms() {
       console.log("校验失败");
       return false;
     }
-    proxy.$axios.post("http://127.0.0.1:8000/api/send/sms/", {
+    proxy.$axios.post("api/send/sms/", {
       mobile: smsModel.mobile
     }).then(res => {
       if (res.data.code === 1000) {
@@ -144,12 +144,13 @@ function PasswordLogin() {
       return false;
     }
     // 校验成功，发送网络请求
-    proxy.$axios.post(" http://127.0.0.1:8000/api/login/password/", userModel)
+    proxy.$axios.post("api/shipper/login/", userModel)
         .then(res => {
           console.log(res.data)
           if (res.data.status === "success") {
             // console.log("登录成功")
             // 1.保存到vuex + 持久化
+            console.log(res.data.data)
             store.commit("login", res.data.data);
             // 2.跳转到后台
             ElMessage({
@@ -188,7 +189,7 @@ function SmsLogin() {
     }
 
     // 校验成功，发送网络请求
-    proxy.$axios.post(" http://127.0.0.1:8000/api/send/sms/", smsModel)
+    proxy.$axios.post(" api/send/sms/", smsModel)
         .then(res => {
           console.log(res.data)
           if (res.data.code === 1000) {

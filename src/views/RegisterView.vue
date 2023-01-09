@@ -88,7 +88,7 @@ const state = reactive({
     ],
     mobile: [
       {required: true, message: '手机号不能为空', trigger: 'blur'},
-      //{ pattern:/^[a-z]+$/, message: '格式错误', trigger: 'blur'},
+      // { pattern:/^[a-z]+$/, message: '格式错误', trigger: 'blur'},
     ],
     // code: [
     //   {required: true, message: '验证码不能为空', trigger: 'blur'},
@@ -124,7 +124,7 @@ function doSendSms() {
       console.log("校验失败");
       return false;
     }
-    proxy.$axios.post("http://127.0.0.1:8000/api/register/sms/", {
+    proxy.$axios.post("api/register/sms/", {
       mobile: state.from.mobile
     }).then((res) => {
       if (res.data.code === 1000) {
@@ -166,7 +166,7 @@ function Register() {
       console.log("校验失败");
       return false;
     }
-    proxy.$axios.post("http://127.0.0.1:8000/api/register/", state.from).then((res) => {
+    proxy.$axios.post("api/register/", state.from).then((res) => {
       if (res.data.code === 1000) {
         // 跳转到登录界面
         ElMessage({

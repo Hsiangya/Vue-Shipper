@@ -49,9 +49,9 @@ const routes = [
     },
     //
     {
-        path: '/:path(.*)',
-        redirect:{name:"Home"},
-        component: () => import("../views/NotFoundView")
+        // path: '/:path(.*)',
+        // redirect:{name:"Home"},
+        // component: () => import("../views/NotFoundView")
     },
 ]
 
