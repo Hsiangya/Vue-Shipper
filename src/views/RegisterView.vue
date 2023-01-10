@@ -61,7 +61,6 @@ const router = useRouter()
 const {proxy} = getCurrentInstance()
 const bntSmsText = ref("发送验证码")
 const btnSmsDisabled = ref(false)
-
 // 重复密码与密码一致性校验
 const validatePass2 = (rule, value, callback) => {
   if (value === '') {
@@ -117,7 +116,7 @@ function doSendSms() {
   // 清除自定义错误
   clearFormError(state.error)
   // 表单验证 ref 属性
-  // this.$refs.userRef
+  // this.$refs.userRef vue 2中获取表单DOM对象
   proxy.$refs.RegisterRef.validate((valid) => {
     // 校验失败
     if (!valid) {

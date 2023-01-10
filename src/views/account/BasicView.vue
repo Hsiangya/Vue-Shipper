@@ -108,15 +108,30 @@
   </el-dialog>
 
   <el-dialog v-model="MobileDialogVisible" title="修改绑定手机号" width="30%">
-    <el-form :model="state.MobileDialog.from" :rules="state.MobileDialog.rules" ref="UserRef" label-width="80px">
-      <el-form-item :error="state.MobileDialog.errors.mobile">
-        <el-input v-model="state.MobileDialog.from.mobile" placeholder="请输入需要修改的绑定手机号"/>
-      </el-form-item>
-      <el-row justify="center" align="middle" style="height: 80px;">
-        <el-button type="primary" style="width: 200px;height: 40px;" @click="DoUpdateMobile">提交审核
-        </el-button>
-      </el-row>
-    </el-form>
+    <div>
+      <el-form :model="state.MobileDialog.form" label-width="80px">
+
+        <el-form-item style="margin-top: 24px;" :error="state.MobileDialog.errors.old" label="原手机号">
+          <el-input v-model="state.MobileDialog.from.old" placeholder="原手机号"></el-input>
+        </el-form-item>
+
+        <el-form-item style="margin-top: 24px;" prop="code" :error="state.MobileDialog.errors.code" label="验证码">
+          <el-row justify="space-between" style="width: 100%">
+            <el-input v-model="state.MobileDialog.from.code" placeholder="请输入验证码" style="width: 220px"/>
+            <el-button :disabled="BtnSmsDisabled" @click="DoSendSms">{{ BntSmsText }}</el-button>
+          </el-row>
+        </el-form-item>
+
+        <el-form-item style="margin-top: 24px;" :error="state.MobileDialog.errors.mobile" label="新手机号">
+          <el-input v-model="state.MobileDialog.from.mobile" placeholder="新手机号"></el-input>
+        </el-form-item>
+
+        <el-row justify="center" align="middle" style="height: 80px;">
+          <el-button type="primary" style="width: 200px;height: 40px;" @click="DoUpdateMobile">提交审核
+          </el-button>
+        </el-row>
+      </el-form>
+    </div>
   </el-dialog>
 </template>
 
@@ -133,6 +148,7 @@ const store = useStore()
 const router = useRouter()
 const UserDialogVisible = ref(false)
 const MobileDialogVisible = ref(false)
+const BtnSmsDisabled = ref(false)
 const state = reactive({
   model: {
     id: "",
@@ -156,15 +172,20 @@ const state = reactive({
   },
   MobileDialog: {
     from: {
+      code: '',
+      old: "",
       mobile: "",
     },
     rules: {
+      old: [{required: true, message: '手机号不能为空', trigger: 'blur'},],
       mobile: [{required: true, message: '手机号不能为空', trigger: 'blur'},],
     },
     errors: {
+      old: "",
       mobile: "",
+      code: '',
     }
-  }
+  },
 });
 
 // 修改名称

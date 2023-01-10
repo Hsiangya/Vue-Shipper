@@ -12,12 +12,12 @@
           </li>
         </ul>
         <div v-show="tabSelected===0">
-          <el-form size="large" :model="userModel" :rules="userRules" ref="userRef">
-            <el-form-item style="margin-top: 24px;" prop="mobile" :error="UserError.mobile">
-              <el-input v-model="userModel.mobile" placeholder="手机号"/>
+          <el-form size="large" :model="state.from.userModel" :rules="state.Rules.userRules" ref="userRef">
+            <el-form-item style="margin-top: 24px;" prop="mobile" :error="state.Error.UserError.mobile">
+              <el-input v-model="state.from.userModel.mobile" placeholder="手机号"/>
             </el-form-item>
-            <el-form-item style="margin-top: 24px;" prop="password" :error="UserError.password">
-              <el-input v-model="userModel.password" placeholder="密码"/>
+            <el-form-item style="margin-top: 24px;" prop="password" :error="state.Error.UserError.password">
+              <el-input v-model="state.from.userModel.password" placeholder="密码"/>
             </el-form-item>
             <el-form-item style="margin-top: 24px;">
               <el-button @click="PasswordLogin" type="primary">登 录</el-button>
@@ -25,14 +25,17 @@
           </el-form>
         </div>
         <div v-show="tabSelected===1">
-          <el-form size="large" :model="smsModel" :rules="smsRules" ref="smsRef">
-            <el-form-item style="margin-top: 24px;" prop="mobile" :error="SmsError.mobile">
-              <el-input v-model="smsModel.mobile" placeholder="手机号"/>
+          <el-form size="large" :model="state.from.SmsModel" :rules="state.Rules.SmsRules" ref="SmsRef">
+            <el-form-item style="margin-top: 24px;" prop="mobile" :error="state.Error.SmsError.mobile">
+              <el-input v-model="state.from.SmsModel.mobile" placeholder="手机号"/>
             </el-form-item>
-            <el-form-item style="margin-top: 24px;" prop="code" :error="SmsError.code">
+            <el-form-item style="margin-top: 24px;" prop="code" :error="state.Error.SmsError.code">
               <el-row justify="space-between" style="width: 100%">
-                <el-input v-model="smsModel.code" placeholder="验证码" style="width: 220px"/>
-                <el-button :disabled="btnSmsDisabled" @click="doSendSms">{{ bntSmsText }}</el-button>
+                <el-input v-model="state.from.SmsModel.code" placeholder="验证码" style="width: 220px"/>
+                <el-button :disabled="BtnSmsDisabled"
+                           @click="DoSendSms(proxy, proxy.$refs.SmsRef,state.from.SmsModel, BtnSmsDisabled.value, BtnSmsText.value, state.Error.SmsError)">
+                  {{ BtnSmsText }}
+                </el-button>
               </el-row>
 
             </el-form-item>
@@ -48,94 +51,76 @@
 
 <script setup>
 import {ElMessage} from 'element-plus'
-import {ref, reactive, getCurrentInstance} from "vue";
+import {ref, reactive, getCurrentInstance,} from "vue";
 import {useStore} from 'vuex'
 import {useRouter} from 'vue-router'
 import {validateFormError, clearFormError} from '@/plugins/form'
-
+import {DoSendSms} from '@/plugins/SendSms'
 
 const store = useStore();
 const router = useRouter();
 const {proxy} = getCurrentInstance()
 // 登录模式
 const tabList = reactive(["密码登录", "免密码登录"])
-let tabSelected = ref(0)
-
-// 密码登录
-const userModel = reactive({
-  mobile: '13600334401',
-  password: 'xy159951',
-})
-const userRules = reactive({
-  mobile: [
-    {required: true, message: '用户名不能为空', trigger: 'blur'},
-  ],
-  password: [
-    {required: true, message: '密码不能为空', trigger: 'blur'},
-    {min: 6, max: 28, message: '密码长度至少6个字符', trigger: 'blur'}
-  ],
-})
-const UserError = reactive({
-  mobile: '',
-  password: '',
-})
-// 短信登录
-const bntSmsText = ref("发送验证码");
-const btnSmsDisabled = ref(false);
-const smsModel = reactive({
-  mobile: '',
-  code: '',
-});
-const smsRules = reactive({
-  mobile: [
-    {required: true, message: '手机号不能空', trigger: 'blur'},
-  ],
-  code: [
-    {required: true, message: '验证码不能为空', trigger: 'blur'},
-  ]
-})
-const SmsError = reactive({
-  mobile: '',
-  code: '',
-})
-
-// 发送短信
-function doSendSms() {
-  proxy.$refs.smsRef.validateField("mobile", (valid) => {
-    // 校验失败
-    if (!valid) {
-      console.log("校验失败");
-      return false;
-    }
-    proxy.$axios.post("api/send/sms/", {
-      mobile: smsModel.mobile
-    }).then(res => {
-      if (res.data.code === 1000) {
-        btnSmsDisabled.value = true;// 发送验证码按钮禁止点击
-        let num = 60;
-        let interval = window.setInterval(() => {
-          num -= 1;
-          bntSmsText.value = `${num}秒后重发`
-          if (num < 1) {
-            bntSmsText.value = "重新发送";
-            window.clearInterval(interval);
-            btnSmsDisabled.value = false;
-          }
-        }, 1000)
-      } else if (res.data.code === 2001) {
-        validateFormError(SmsError, res.data.detail);
-      } else {
-        ElMessage.error(res.data.message);
+const state = reactive(
+    {
+      from: {
+        SmsModel: {
+          mobile: '13600334401',
+          code: '',
+        },
+        userModel: {
+          mobile: '13600334401',
+          password: 'xy159951',
+        }
+      },
+      Rules: {
+        SmsRules: {
+          mobile: [{required: true, message: '手机号不能空', trigger: 'blur'},],
+          // code: [
+          //   {required: true, message: '验证码不能为空', trigger: 'blur'},]
+        },
+        userRules: {
+          mobile: [{required: true, message: '用户名不能为空', trigger: 'blur'},],
+          password: [
+            {required: true, message: '密码不能为空', trigger: 'blur'},
+            {min: 6, max: 28, message: '密码长度至少6个字符', trigger: 'blur'}
+          ],
+        }
+      },
+      Error: {
+        SmsError: {
+          mobile: '',
+          code: '',
+        },
+        UserError: {
+          mobile: '',
+          password: '',
+        }
       }
     })
-  })
-
-}
+let tabSelected = ref(0)
+// 短信登录
+const BtnSmsText = ref("发送验证码");
+const BtnSmsDisabled = ref(false);
+console.log(BtnSmsDisabled.value)
+// BtnSmsDisabled.value = true
+// 发送短信
+// function doSendSms() {
+//   proxy.$refs.SmsRef.validateField("mobile", (valid) => {
+//     // 校验失败
+//     if (!valid) {
+//       console.log("校验失败");
+//       return false;
+//     }
+//     DoSendSms(proxy, state.from.SmsModel, BtnSmsDisabled, BtnSmsText, state.Error.SmsError)
+//   })
+// }
 
 // 密码登录
 function PasswordLogin() {
   // 清除自定义错误
-  clearFormError(UserError)
+  clearFormError(state.Error.UserError)
 
   proxy.$refs.userRef.validate((valid) => {
     // 校验失败
@@ -144,7 +129,7 @@ function PasswordLogin() {
       return false;
     }
     // 校验成功，发送网络请求
-    proxy.$axios.post("api/shipper/login/", userModel)
+    proxy.$axios.post("api/shipper/login/", state.from.userModel)
         .then(res => {
           console.log(res.data)
           if (res.data.status === "success") {
@@ -165,7 +150,7 @@ function PasswordLogin() {
             // proxy.router({name: "Basic"})
           } else if (res.data.code === -1) {
             // {code: -1, error: {user: "用户名错误", pwd: "密码格式出问题了"}}
-            validateFormError(UserError, res.data.detail);
+            validateFormError(state.Error.UserError, res.data.detail);
           } else {
             //{"code": -2, 'msg': "用户名或密码错误"}
             ElMessage.error(res.data.message);
@@ -179,17 +164,17 @@ function PasswordLogin() {
 // 短信登录
 function SmsLogin() {
   // 清除自定义错误
-  clearFormError(SmsError);
+  clearFormError(state.Error.SmsError);
 
-  proxy.$refs.smsRef.validate((valid) => {
+  proxy.$refs.SmsRef.validate((valid) => {
     // 校验失败
     if (!valid) {
-      console.log("校验失败");
+      ElMessage.error("数据校验失败");
       return false;
     }
 
     // 校验成功，发送网络请求
-    proxy.$axios.post(" api/send/sms/", smsModel)
+    proxy.$axios.post("api/shipper/login/sms/", state.from.SmsModel)
         .then(res => {
           console.log(res.data)
           if (res.data.code === 1000) {
@@ -198,7 +183,7 @@ function SmsLogin() {
             // 2. 跳转
             router.replace({name: "Basic"})
           } else if (res.data.code === 2001) {
-            validateFormError(SmsError, res.error);
+            validateFormError(state.Error.SmsError, res.error);
           } else {
             ElMessage.error(res.data.message);
           }
@@ -206,7 +191,6 @@ function SmsLogin() {
 
   });
 }
-
 
 
 </script>
