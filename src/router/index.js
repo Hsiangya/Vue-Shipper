@@ -32,6 +32,11 @@ const routes = [
                 component: () => import("@/views/account/AuthView")
             },
             {
+                path: '/auth/Edit',
+                name: 'AuthEdit',
+                component: () => import("@/views/account/AuthEditView")
+            },
+            {
                 path: '/ship/publish',
                 name: 'ShipPublish',
                 component: () => import("@/views/ship/PublishView")
@@ -45,7 +50,7 @@ const routes = [
     },
     {
         path: '',
-        redirect:{name:"Home"},
+        redirect: {name: "Home"},
     },
     //
     {

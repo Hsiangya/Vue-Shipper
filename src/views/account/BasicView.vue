@@ -109,21 +109,21 @@
 
   <el-dialog v-model="MobileDialogVisible" title="修改绑定手机号" width="30%">
     <div>
-      <el-form :model="state.MobileDialog.form" label-width="80px">
-
-        <el-form-item style="margin-top: 24px;" :error="state.MobileDialog.errors.old" label="原手机号">
-          <el-input v-model="state.MobileDialog.from.old" placeholder="原手机号"></el-input>
+      <el-form :model="state.MobileDialog.form" label-width="80px" :rules="state.MobileDialog.rules" ref="MobileRef">
+        <el-form-item style="margin-top: 24px;" :error="state.MobileDialog.errors.mobile" prop="old" label="原手机号">
+          <el-input v-model="state.MobileDialog.from.mobile" placeholder="原手机号"></el-input>
         </el-form-item>
 
-        <el-form-item style="margin-top: 24px;" prop="code" :error="state.MobileDialog.errors.code" label="验证码">
+        <el-form-item style="margin-top: 24px;" prop="code" :error="state.MobileDialog.errors.code"
+                      label="验证码">
           <el-row justify="space-between" style="width: 100%">
             <el-input v-model="state.MobileDialog.from.code" placeholder="请输入验证码" style="width: 220px"/>
-            <el-button :disabled="BtnSmsDisabled" @click="DoSendSms">{{ BntSmsText }}</el-button>
+            <el-button :disabled="BtnSmsDisabled" @click="SendSms">{{ BtnSmsText }}</el-button>
           </el-row>
         </el-form-item>
 
-        <el-form-item style="margin-top: 24px;" :error="state.MobileDialog.errors.mobile" label="新手机号">
-          <el-input v-model="state.MobileDialog.from.mobile" placeholder="新手机号"></el-input>
+        <el-form-item style="margin-top: 24px;" :error="state.MobileDialog.errors.new_mobile" label="新手机号">
+          <el-input v-model="state.MobileDialog.from.new_mobile" placeholder="新手机号"></el-input>
         </el-form-item>
 
         <el-row justify="center" align="middle" style="height: 80px;">
@@ -149,6 +149,7 @@ const router = useRouter()
 const UserDialogVisible = ref(false)
 const MobileDialogVisible = ref(false)
 const BtnSmsDisabled = ref(false)
+const BtnSmsText = ref("发送验证码");
 const state = reactive({
   model: {
     id: "",
@@ -173,16 +174,16 @@ const state = reactive({
   MobileDialog: {
     from: {
       code: '',
-      old: "",
-      mobile: "",
+      mobile: "13600334401",
+      new_mobile: "",
     },
     rules: {
-      old: [{required: true, message: '手机号不能为空', trigger: 'blur'},],
       mobile: [{required: true, message: '手机号不能为空', trigger: 'blur'},],
+      new_mobile: [{required: true, message: '手机号不能为空', trigger: 'blur'},],
     },
     errors: {
-      old: "",
       mobile: "",
+      new_mobile: "",
       code: '',
     }
   },
@@ -226,6 +227,36 @@ function DoUpdateMobile() {
     }
   })
 
+}
+
+// 发送短信验证码
+function SendSms() {
+  console.log(state.MobileDialog.from.mobile)
+    proxy.$axios.post("api/shipper/send/sms/", state.MobileDialog.from).then(res => {
+      if (res.data.code === 1000) {
+        ElMessage({
+          showClose: true,
+          message: '短信发送成功，有效时间1分钟',
+          type: 'success',
+        });
+        BtnSmsDisabled.value = true;// 发送验证码按钮禁止点击
+        let num = 60;
+        let interval = window.setInterval(() => {
+          num -= 1;
+          BtnSmsText.value = `${num}秒后重发`
+          if (num < 1) {
+            BtnSmsText.value = "重新发送";
+            window.clearInterval(interval);
+            BtnSmsDisabled.value = false;
+          }
+        }, 1000)
+      } else if (res.data.code === 2001) {
+        validateFormError(state.MobileDialog.errors, res.data.detail);
+        ElMessage.error(res.data.message.mobile[0]);
+      } else {
+        ElMessage.error(res.data.message);
+      }
+    })
 }
 
 // 初始化请求

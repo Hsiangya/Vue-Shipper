@@ -23,7 +23,7 @@
               <el-form-item style="margin-top: 24px;" prop="code" :error="state.error.code" label="验证码">
                 <el-row justify="space-between" style="width: 100%">
                   <el-input v-model="state.from.code" placeholder="请输入验证码" style="width: 220px"/>
-                  <el-button :disabled="btnSmsDisabled" @click="doSendSms">{{ bntSmsText }}</el-button>
+                  <el-button :disabled="btnSmsDisabled" @click="DoSendSms">{{ bntSmsText }}</el-button>
                 </el-row>
               </el-form-item>
 
@@ -112,7 +112,7 @@ const state = reactive({
 })
 
 // 发送短信验证码
-function doSendSms() {
+function DoSendSms() {
   // 清除自定义错误
   clearFormError(state.error)
   // 表单验证 ref 属性
@@ -123,7 +123,7 @@ function doSendSms() {
       console.log("校验失败");
       return false;
     }
-    proxy.$axios.post("api/register/sms/", {
+    proxy.$axios.post("api/shipper/register/sms/", {
       mobile: state.from.mobile
     }).then((res) => {
       if (res.data.code === 1000) {
@@ -165,7 +165,7 @@ function Register() {
       console.log("校验失败");
       return false;
     }
-    proxy.$axios.post("api/register/", state.from).then((res) => {
+    proxy.$axios.post("api/shipper/register/", state.from).then((res) => {
       if (res.data.code === 1000) {
         // 跳转到登录界面
         ElMessage({

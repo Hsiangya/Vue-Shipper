@@ -33,7 +33,7 @@
               <el-row justify="space-between" style="width: 100%">
                 <el-input v-model="state.from.SmsModel.code" placeholder="验证码" style="width: 220px"/>
                 <el-button :disabled="BtnSmsDisabled"
-                           @click="DoSendSms(proxy, proxy.$refs.SmsRef,state.from.SmsModel, BtnSmsDisabled.value, BtnSmsText.value, state.Error.SmsError)">
+                           @click="SendSms">
                   {{ BtnSmsText }}
                 </el-button>
               </el-row>
@@ -55,7 +55,6 @@ import {ref, reactive, getCurrentInstance,} from "vue";
 import {useStore} from 'vuex'
 import {useRouter} from 'vue-router'
 import {validateFormError, clearFormError} from '@/plugins/form'
-import {DoSendSms} from '@/plugins/SendSms'
 
 const store = useStore();
 const router = useRouter();
@@ -103,19 +102,43 @@ let tabSelected = ref(0)
 // 短信登录
 const BtnSmsText = ref("发送验证码");
 const BtnSmsDisabled = ref(false);
-console.log(BtnSmsDisabled.value)
-// BtnSmsDisabled.value = true
-// 发送短信
-// function doSendSms() {
-//   proxy.$refs.SmsRef.validateField("mobile", (valid) => {
-//     // 校验失败
-//     if (!valid) {
-//       console.log("校验失败");
-//       return false;
-//     }
-//     DoSendSms(proxy, state.from.SmsModel, BtnSmsDisabled, BtnSmsText, state.Error.SmsError)
-//   })
-// }
+
+// 发送验证码
+function SendSms() {
+  proxy.$refs.SmsRef.validateField("mobile", (valid) => {
+    // 校验失败
+    if (!valid) {
+      ElMessage.error("手机号不能为空");
+      return false;
+    }
+    proxy.$axios.post("api/shipper/send/sms/", state.from.SmsModel).then(res => {
+      if (res.data.code === 1000) {
+        ElMessage({
+          showClose: true,
+          message: '短信发送成功，有效时间1分钟',
+          type: 'success',
+        });
+        BtnSmsDisabled.value = true;// 发送验证码按钮禁止点击
+        let num = 60;
+        let interval = window.setInterval(() => {
+          num -= 1;
+          BtnSmsText.value = `${num}秒后重发`
+          if (num < 1) {
+            BtnSmsText.value = "重新发送";
+            window.clearInterval(interval);
+            BtnSmsDisabled.value = false;
+          }
+        }, 1000)
+      } else if (res.data.code === 2001) {
+        validateFormError(state.Error.SmsError, res.data.detail);
+        ElMessage.error(res.data.message.mobile[0]);
+      } else {
+        ElMessage.error(res.data.message);
+      }
+    })
+
+  })
+}
 
 // 密码登录
 function PasswordLogin() {
@@ -176,11 +199,16 @@ function SmsLogin() {
     // 校验成功，发送网络请求
     proxy.$axios.post("api/shipper/login/sms/", state.from.SmsModel)
         .then(res => {
-          console.log(res.data)
           if (res.data.code === 1000) {
             // 1. 保存到vuex
-            store.commit("login", res.data.data)
+            store.commit("login", res.data.data);
+
             // 2. 跳转
+            ElMessage({
+              showClose: true,
+              message: '登录成功',
+              type: 'success',
+            });
             router.replace({name: "Basic"})
           } else if (res.data.code === 2001) {
             validateFormError(state.Error.SmsError, res.error);
@@ -191,7 +219,6 @@ function SmsLogin() {
 
   });
 }
-
 
 </script>
 <style scoped>

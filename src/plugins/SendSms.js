@@ -4,8 +4,7 @@ import {ElMessage} from "element-plus";
 //
 // const proxy = getCurrentInstance()
 
-export function DoSendSms(proxy, FromInstanceDom, FromData,BtnSmsValue, BtnSmsTextValue, SmsError) {
-    // console.log(BtnSmsValue,BtnSmsValue.value)
+export function DoSendSms(proxy, FromInstanceDom, FromData, BtnSmsValue, BtnSmsTextValue, SmsError) {
     FromInstanceDom.validateField("mobile", valid => {
         // 校验失败
         if (!valid) {
@@ -16,8 +15,8 @@ export function DoSendSms(proxy, FromInstanceDom, FromData,BtnSmsValue, BtnSmsTe
             console.log(FromData)
             if (res.data.code === 1000) {
                 console.log("send ok")
-                BtnSmsValue= true;// 发送验证码按钮禁止点击
-                console.log("BtnSmsValue ok "+BtnSmsValue)
+                BtnSmsValue = true;// 发送验证码按钮禁止点击
+                console.log("BtnSmsValue ok " + BtnSmsValue)
                 let num = 60;
                 let interval = window.setInterval(() => {
                     console.log(num)
