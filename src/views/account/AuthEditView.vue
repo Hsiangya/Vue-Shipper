@@ -53,6 +53,7 @@
                   :before-upload="beforeImageUpload"
                   :on-success="uploadSuccessWrapper('licence_path')">
                 <!--参数说明：
+                :data="{type:'licence_path'}" ===> 请求的URL/?type=licence_path
                 drag:启用拖拽上传                      data：上传时附带的参数
                 show-file-list:是否显示已上传文件列表    multiple:是否支持多选文件
                 action:上传时请求的url                 on-success:文件上传成功时的钩子
@@ -93,12 +94,13 @@
             <el-form-item style="margin-top: 24px" :error="state.error.leader_identity_front"
                           label="法人身份证正面">
               <el-upload
-                  class="avatar--uploader"
+                  class="avatar-uploader"
                   :action="imageUploadUrl"
-                  :on-success="uploadSuccessWrapper('leader_identity_front','leader_identity_front_rul')"
+                  :on-success="uploadSuccessWrapper('leader_identity_front','leader_identity_front_url')"
                   :data="{type:'font'}"
                   :show-file-list="false">
-                <img v-if="state.form.leader_identity_front_url" :src="state.form.leader_identity_front_url"
+                <img v-if="state.form.leader_identity_front_url"
+                     :src="state.form.leader_identity_front_url"
                      class="avatar"/>
                 <el-icon v-else class="avatar-uploader-icon">
                   <upload-filled/>
@@ -170,8 +172,8 @@ const state = reactive({
   }
 })
 
-// 上传时请求的url
-const imageUploadUrl = "api/shipper/auth.upload"
+// 上传时请求的url,非axios请求，需要使用完整URL
+const imageUploadUrl = "http://127.0.0.1:8000/api/shipper/auth/upload/"
 
 
 // 上传文件前的钩子
@@ -188,10 +190,10 @@ function beforeImageUpload(file) {
 
 }
 
-// 上传文件之后的钩子
+// 上传文件之后的回调函数，对函做闭包处理
 function uploadSuccessWrapper(fieldName, preViewFieldName) {
   return function (res) {
-    if (res.code === 0) {
+    if (res.code === 1000) {
       // 1. 图片的地址+返回时添加
       // 2. 服务器支持访问静态图片
       state.form[fieldName] = res.data.url; // 返回的url地址更新到地址上
@@ -217,6 +219,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.avatar-uploader .avatar {
+  width: 200px;
+  height: 120px;
+  display: block;
+}
+
 .el-upload-dragger {
   padding: 20px;
 }
