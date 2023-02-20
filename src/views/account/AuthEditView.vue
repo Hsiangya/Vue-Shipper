@@ -28,7 +28,7 @@
         <el-row :gutter="30">
           <el-col :span="12">
             <el-form-item style="margin-top:24px;" :error="state.form.license_path" label="营业执照">
-              <ul v-if="state.form.license_path" class="el-upload-list el-upload-list--picture-card"
+              <ul v-if="state.form.license_path_url" class="el-upload-list el-upload-list--picture-card"
                   style="width: 200px;height: 150px;">
                 <li class="el-upload-list__item is-success" style="width: 200px;height: 120px;">
                   <img class="el-upload-list__item-thumbnail" :src="state.form.license_path_url"/>
@@ -50,22 +50,26 @@
                   :show-file-list="false"
                   :multiple="false"
                   :action="imageUploadUrl"
-                  :before-upload="beforeImageUpload"
-                  :on-success="uploadSuccessWrapper('licence_path')">
+                  :before-upload="function (file){return HandleBefore(file,'license')}"
+                  :on-success="uploadSuccessWrapper('licence_path','license_path_url','license')"
+                  :on-remove="RemoveLicenceImage"
+                  v-loading="state.loading.license"
+              >
                 <!--参数说明：
-                :data="{type:'licence_path'}" ===> 请求的URL/?type=licence_path
+                :data="{type:'licence_path'}" ===> 请求体中会携带该数据
                 drag:启用拖拽上传                      data：上传时附带的参数
                 show-file-list:是否显示已上传文件列表    multiple:是否支持多选文件
                 action:上传时请求的url                 on-success:文件上传成功时的钩子
                 before-upload:上传文件之前的钩子，参数为上传的文件 返回false或Promise且被reject，则停止上传。
                 -->
+
                 <el-icon class="el-icon--upload">
                   <upload-filled/>
                 </el-icon>
                 <template #tip>
                   <div class="el-upload__tip"
                        style="text-align:center;font-size:8px;margin-top:0;line-height:25px;">
-                    只能上传jpg文件，且不超过2M
+                    只能上传png文件，且不超过6M
                   </div>
                 </template>
               </el-upload>
@@ -84,7 +88,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item style="margin-top: 24px;" :error="state.error.leader_identity" label="法人身份证">
+            <el-form-item style="margin-top: 24px;" :error="state.error.leader_identity"
+                          label="法人身份证">
               <el-input v-model="state.form.leader_identity" placeholder="法人身份证"></el-input>
             </el-form-item>
           </el-col>
@@ -96,9 +101,12 @@
               <el-upload
                   class="avatar-uploader"
                   :action="imageUploadUrl"
-                  :on-success="uploadSuccessWrapper('leader_identity_front','leader_identity_front_url')"
-                  :data="{type:'font'}"
-                  :show-file-list="false">
+                  :on-success="uploadSuccessWrapper('leader_identity_front','leader_identity_front_url','card_front')"
+                  :data="{type:'front'}"
+                  :before-upload="function (file){return HandleBefore(file,'card_front')}"
+                  :show-file-list="false"
+                  v-loading="state.loading.card_front"
+              >
                 <img v-if="state.form.leader_identity_front_url"
                      :src="state.form.leader_identity_front_url"
                      class="avatar"/>
@@ -115,8 +123,10 @@
                   class="avatar-uploader"
                   :action="imageUploadUrl"
                   :data="{type:'back'}"
-                  :on-success="uploadSuccessWrapper('leader_identity_back','leader_identity_back_rul')"
-                  :show-file-list="false">
+                  :on-success="uploadSuccessWrapper('leader_identity_back','leader_identity_back_rul','card_back')"
+                  :show-file-list="false"
+                  v-loading="state.loading.card_back"
+              >
                 <img v-if="state.form.leader_identity_back_url" :src="state.form.leader_identity_back_url"
                      class="avatar"/>
                 <el-icon v-else class="avatar-uploader-icon">
@@ -133,7 +143,10 @@
       </el-row>
     </el-form>
   </el-card>
+
+  <!--对话框-->
   <el-dialog v-model="state.DialogLicenceVisible">
+    <!--其中w-full是一个Vue.js模板语法，用于将图片的宽度设置为其容器的100％，即铺满整个容器的宽度。-->
     <img w-full :src="state.form.licence_path_url" alt="Preview Image" style="width: 100%;height: 100%"/>
   </el-dialog>
 </template>
@@ -144,6 +157,11 @@ import {UploadFilled, ZoomIn, Delete} from '@element-plus/icons-vue'
 import {ElMessage} from 'element-plus'
 
 const state = reactive({
+  loading: {
+    license: false,
+    card_front: false,
+    card_back: false,
+  },
   DialogLicenceVisible: false,
   form: {
     title: "",
@@ -177,30 +195,43 @@ const imageUploadUrl = "http://127.0.0.1:8000/api/shipper/auth/upload/"
 
 
 // 上传文件前的钩子
-function beforeImageUpload(file) {
+function HandleBefore(file, ImageFile) {
+  state.loading[ImageFile] = true;
   const isPNG = file.type === 'image/png';
-  const isLt2m = file.size / 1024 / 1024 < 2;
+  const isLt2m = file.size / 1024 / 1024 < 6;
   if (!isPNG) {
+    state.loading[ImageFile] = false;
     ElMessage.error("上传图片只能是PNG格式！")
   }
   if (!isLt2m) {
-    ElMessage.error("上传图片大小不能超过2MB！")
+    state.loading[ImageFile] = false;
+    ElMessage.error("上传图片大小不能超过6MB！")
   }
   return isPNG && isLt2m
-
 }
 
+
 // 上传文件之后的回调函数，对函做闭包处理
-function uploadSuccessWrapper(fieldName, preViewFieldName) {
+function uploadSuccessWrapper(fieldName, preViewFieldName, ImageFile) {
   return function (res) {
-    if (res.code === 1000) {
+    if (res.code === 1000 && res.type === "front") {
       // 1. 图片的地址+返回时添加
       // 2. 服务器支持访问静态图片
       state.form[fieldName] = res.data.url; // 返回的url地址更新到地址上
       state.form[preViewFieldName] = res.data.abs_url;
+      state.form.leader = res.data.leader;
+      state.form.leader_identity = res.data.leader_identity;
+    } else if (res.code === 1000 && res.type === "licence_path") {
+      state.form[fieldName] = res.data.url; // 返回的url地址更新到地址上
+      state.form[preViewFieldName] = res.data.abs_url;
+      state.form.title = res.data.title;
+      state.form.unique_id = res.data.unique_id;
+    } else if (res.code === 5001) {
+      ElMessage.error(res.message)
     } else {
       ElMessage.error("上传失败：" + res.message)
     }
+    state.loading[ImageFile] = false;
   }
 }
 
@@ -212,8 +243,6 @@ function RemoveLicenceImage() {
 
 onMounted(() => {
   // 发送请求获取数据
-  console.log(state.form)
-  state.form.title = "xxx"
   console.log(state.form)
 })
 </script>
