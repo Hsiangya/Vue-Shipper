@@ -30,11 +30,11 @@
         </el-row>
         <el-row :gutter="10" class="info-row">
           <el-col :span='4' class="row-left">营业执照</el-col>
-          <el-col :span='15' class="row-right" v-if="state.data.license_path_url">
+          <el-col :span='15' class="row-right" v-if="state.data.licence_path">
             <el-image
                 style="width: 150px;height: 100px"
-                :src="state.data.license_path_url"
-                :preview-src-list="[state.data.license_path_url]"
+                :src="state.data.licence_path"
+                :preview-src-list="[state.data.licence_path]"
                 fit="cover"
             />
           </el-col>
@@ -52,15 +52,16 @@
         </el-row>
         <el-row :gutter="10" class="info-row">
           <el-col :span="4" style="text-align: left" class="row-left">法人身份证</el-col>
-          <el-col :span="15" style="text-align: left;" class="row-right">无</el-col>
+          <el-col :span="15" style="text-align: left;" class="row-right">{{ state.data.leader_identity || "无" }}
+          </el-col>
         </el-row>
         <el-row :gutter="10" class="info-row">
           <el-col :span="4" class="row-left">法人身份证头像面</el-col>
-          <el-col :span="8" class="row-right" v-if="state.data.leader_identity_front_url">
+          <el-col :span="8" class="row-right" v-if="state.data.leader_identity_front">
             <el-image
                 style="width: 150px;height: 100px"
-                :src="state.data.leader_identity_front_url"
-                :preview-src-list="[state.data.leader_identity_front_url]"
+                :src="state.data.leader_identity_front"
+                :preview-src-list="[state.data.leader_identity_front]"
                 fit="cover"
             />
           </el-col>
@@ -70,11 +71,11 @@
         </el-row>
         <el-row :gutter="10" class="info-row">
           <el-col :span="4" class="row-left">法人身份证国徽面</el-col>
-          <el-col :span="8" class="row-right" v-if="state.data.leader_identity_back_url">
+          <el-col :span="8" class="row-right" v-if="state.data.leader_identity_back">
             <el-image
                 style="width: 150px;height: 100px"
-                :src="state.data.leader_identity_back_url"
-                :preview-src-list="[state.data.leader_identity_back_url]"
+                :src="state.data.leader_identity_back"
+                :preview-src-list="[state.data.leader_identity_back]"
                 fit="cover"
             />
           </el-col>
