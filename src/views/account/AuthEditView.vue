@@ -1,5 +1,5 @@
 <template>
-  <el-card class="box-card" shadow="never">
+  <el-card class="box-card" shadow="never" v-loading="state.loading.front_loading">
     <template #header>
       <div class="card-header" style="display: flex;justify-content: space-between;align-items: center">
         <div>
@@ -27,7 +27,7 @@
         </el-row>
         <el-row :gutter="30">
           <el-col :span="12">
-            <el-form-item style="margin-top:24px;" :error="state.form.license_path" label="营业执照">
+            <el-form-item style="margin-top:24px;" :error="state.error.license_path" label="营业执照">
               <ul v-if="state.form.license_path_url" class="el-upload-list el-upload-list--picture-card"
                   style="width: 200px;height: 150px;">
                 <li class="el-upload-list__item is-success" style="width: 200px;height: 120px;">
@@ -52,7 +52,6 @@
                   :action="imageUploadUrl"
                   :before-upload="function (file){return HandleBefore(file,'license')}"
                   :on-success="uploadSuccessWrapper('licence_path','license_path_url','license')"
-                  :on-remove="RemoveLicenceImage"
                   v-loading="state.loading.license"
               >
                 <!--参数说明：
@@ -139,7 +138,7 @@
       </div>
       <el-divider border-style="dotted"/>
       <el-row justify="center" align="middle" style="height: 80px;">
-        <el-button type="primary" style="width: 200px;height: 40px;">提交审核</el-button>
+        <el-button type="primary" style="width: 200px;height: 40px;" @click="DoSubmit">提交审核</el-button>
       </el-row>
     </el-form>
   </el-card>
@@ -147,20 +146,25 @@
   <!--对话框-->
   <el-dialog v-model="state.DialogLicenceVisible">
     <!--其中w-full是一个Vue.js模板语法，用于将图片的宽度设置为其容器的100％，即铺满整个容器的宽度。-->
-    <img w-full :src="state.form.licence_path_url" alt="Preview Image" style="width: 100%;height: 100%"/>
+    <img w-full :src=state.form.license_path_url alt="Preview Image" style="width: 100%;height: 100%"/>
   </el-dialog>
 </template>
 
 <script setup>
-import {reactive, onMounted} from "vue";
+import {reactive, onMounted, getCurrentInstance} from "vue";
 import {UploadFilled, ZoomIn, Delete} from '@element-plus/icons-vue'
+import {validateFormError, clearFormError} from "@/plugins/form";
 import {ElMessage} from 'element-plus'
+import {useStore} from 'vuex'
 
+const store = useStore();
+const {proxy} = getCurrentInstance()
 const state = reactive({
   loading: {
     license: false,
     card_front: false,
     card_back: false,
+    front_loading: false
   },
   DialogLicenceVisible: false,
   form: {
@@ -221,11 +225,13 @@ function uploadSuccessWrapper(fieldName, preViewFieldName, ImageFile) {
       state.form[preViewFieldName] = res.data.abs_url;
       state.form.leader = res.data.leader;
       state.form.leader_identity = res.data.leader_identity;
+      // console.log(state.form)
     } else if (res.code === 1000 && res.type === "licence_path") {
       state.form[fieldName] = res.data.url; // 返回的url地址更新到地址上
       state.form[preViewFieldName] = res.data.abs_url;
       state.form.title = res.data.title;
       state.form.unique_id = res.data.unique_id;
+      // console.log(state.form)
     } else if (res.code === 5001) {
       ElMessage.error(res.message)
     } else {
@@ -241,9 +247,36 @@ function RemoveLicenceImage() {
   state.form.licence_path = ""
 }
 
+// 提交数据
+// function DoSubmit() {
+//   state.loading.front_loading = true;
+//   //表单验证
+//   clearFormError(state.error);
+//   console.log(state.form)
+//
+//   // 发送请求
+//   proxy.$axios.post("/api/shipper/auth/", state.form).then(res => {
+//     console.log(res);
+//     state.loading.front_loading = false;
+//   })
+// }
+
+function initRequest() {
+  let id = store.state.id; // company_id
+  proxy.$axios.get(`/api/shipper/auth/${id}/`).then((res) => {
+    console.log(res);
+    if (res.data.code === 0) {
+      // 成功
+      // state.data = res.data.data;
+      state.form = {...res.data.data};
+    } else if (res.data.code === -2) {
+      ElMessage.error(res.data.msg);
+    }
+  })
+}
+
 onMounted(() => {
-  // 发送请求获取数据
-  console.log(state.form)
+  initRequest()
 })
 </script>
 
